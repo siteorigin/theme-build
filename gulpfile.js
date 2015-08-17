@@ -83,7 +83,7 @@ gulp.task('copy', ['version', 'sass', 'minify'], function () {
     //Just copy remaining files.
     return gulp.src(
         [
-            '**/!(*.js|*.scss|*.md)',           // Everything except .js and .scss files
+            '**/!(*.js|*.scss|*.md|style.css|woocommerce.css)',   // Everything except .js and .scss files
             '!{build,build/**}',                // Ignore build/ and contents
             '!{sass,sass/**}',                  // Ignore sass/ and contents
             'settings/chosen/*.js',             // Ensure necessary .js files ignored in the first glob are copied
@@ -92,6 +92,7 @@ gulp.task('copy', ['version', 'sass', 'minify'], function () {
             '!{tests,tests/**}',                // Ignore tests/ and contents
             '!{tmp,tmp/**}',                    // Ignore tmp/ and contents
             '!phpunit.xml',                     // Not the unit tests configuration file. (If there is one.)
+            '!functions.php',                   // Not the functions .php file. It is copied by the 'version' task.
             '!readme.txt'                       // Not the readme.txt file. It is copied by the 'version' task.
         ], {base: '.'})
         .pipe(gulp.dest('tmp'));
