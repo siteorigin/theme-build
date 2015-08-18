@@ -93,7 +93,8 @@ gulp.task('copy', ['version', 'sass', 'minify'], function () {
             '!{tmp,tmp/**}',                    // Ignore tmp/ and contents
             '!phpunit.xml',                     // Not the unit tests configuration file. (If there is one.)
             '!functions.php',                   // Not the functions .php file. It is copied by the 'version' task.
-            '!readme.txt'                       // Not the readme.txt file. It is copied by the 'version' task.
+            '!readme.txt',                      // Not the readme.txt file. It is copied by the 'version' task.
+            '!npm-debug.log'                    // Ignore debug log from NPM if it's there
         ], {base: '.'})
         .pipe(gulp.dest('tmp'));
 });
