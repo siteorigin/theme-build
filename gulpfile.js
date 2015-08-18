@@ -8,7 +8,6 @@ var zip = require('gulp-zip');
 var path = require('path');
 
 var args = {};
-args.env = 'dev';
 if(process.argv.length > 2) {
     var arr = process.argv.slice(2);
     args.target = arr[0];
@@ -25,6 +24,7 @@ process.chdir('..');
 var pathParts = process.cwd().split(path.sep);
 var themeSlug = pathParts[pathParts.length - 1];
 var outDir = args.target == 'build:dev' ? '.' : 'dist';
+if( args.target == 'build:dev') args.v = 'dev';
 
 gulp.task('clean', function () {
     if( outDir != '.') {
@@ -49,14 +49,14 @@ gulp.task('version', ['clean'], function() {
 gulp.task('settings-sass', ['clean'], function(){
     return gulp.src(['settings/css/**/*.scss'], {base: '.'})
         .pipe(sass({includePaths: ['settings/css'], outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
-        .pipe(gulp.dest('tmp'));
+        .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
 gulp.task('sass', ['settings-sass'], function() {
     return gulp.src(['sass/**/*.scss'])
         .pipe(replace(/(Version:).*/, '$1 '+args.v))
         .pipe(sass({includePaths: ['sass'], outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
-        .pipe(gulp.dest('tmp'));
+        .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
 gulp.task('concat', ['clean'], function () {
@@ -114,7 +114,8 @@ gulp.task('build:release', ['move'], function () {
 gulp.task('build:dev', ['sass'], function () {
     console.log('Watching SASS files...');
     gulp.watch([
-        'css/**/*.scss'
+        'settings/css/**/*.scss',
+        'sass/**/*.scss'
     ], ['sass']);
 });
 
