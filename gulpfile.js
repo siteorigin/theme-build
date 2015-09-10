@@ -1,4 +1,6 @@
 var gulp = require('gulp');
+var wpPot = require('gulp-wp-pot');
+var sort = require('gulp-sort');
 var del = require('del');
 var rename = require('gulp-rename');
 var replace = require('gulp-replace');
@@ -30,6 +32,20 @@ gulp.task('clean', function () {
     if( outDir != '.') {
         del([outDir]);
     }
+});
+
+gulp.task('i18n', ['clean'], function() {
+    return gulp.src('**/*.php')
+        .pipe(sort())
+        .pipe(wpPot( {
+            domain: themeSlug,
+            destFile: themeSlug + '.pot',
+            package: themeSlug,
+            bugReport: 'http://www.siteorigin.com',
+            lastTranslator: 'SiteOrigin <support@siteorigin.com>',
+            team: 'SiteOrigin <support@siteorigin.com>'
+        } ))
+        .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : 'languages'));
 });
 
 gulp.task('version', ['clean'], function() {
