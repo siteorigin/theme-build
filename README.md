@@ -8,7 +8,7 @@ There are few steps necessary to prepare a theme for release on the WordPress.or
 ## Environment setup
 
 1. [Download](https://nodejs.org/download/) and install Node.js and npm.
-2. In the theme direcotry, ensure the theme-build submodule has been checked out in a folder called 'build' and is up to date.
+2. In the theme folder, ensure the theme-build submodule has been checked out in a folder called 'build' and is up to date.
 3. In a terminal, navigate to the build directory in the theme and run `npm install`
 3. Get some coffee while npm installs the required packages.
 
