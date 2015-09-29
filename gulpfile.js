@@ -5,6 +5,7 @@ var del = require('del');
 var rename = require('gulp-rename');
 var replace = require('gulp-replace');
 var sass = require('gulp-sass');
+var less = require('gulp-less');
 var uglify = require('gulp-uglify');
 var zip = require('gulp-zip');
 var path = require('path');
@@ -63,12 +64,18 @@ gulp.task('version', ['clean'], function() {
 });
 
 gulp.task('settings-sass', ['clean'], function(){
-    return gulp.src(['settings/css/**/*.scss'], {base: '.'})
-        .pipe(sass({includePaths: ['settings/css'], outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
+    return gulp.src(['inc/settings/css/**/*.scss'], {base: '.'})
+        .pipe(sass({includePaths: ['inc/settings/css'], outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('sass', ['settings-sass'], function() {
+gulp.task('panels-lite-less', ['clean'], function(){
+    return gulp.src(['inc/panels-lite/css/**/*.less'], {base: '.'})
+        .pipe(less({paths: ['inc/panels-lite/css'], compress: args.target == 'build:release'}))
+        .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+});
+
+gulp.task('sass', ['settings-sass', 'panels-lite-less'], function() {
     return gulp.src(['sass/**/*.scss'])
         .pipe(replace(/(Version:).*/, '$1 '+args.v))
         .pipe(sass({includePaths: ['sass'], outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
@@ -83,7 +90,8 @@ gulp.task('minify', ['concat'], function () {
     return gulp.src(
         [
             'js/**/*.js',
-            'settings/js/**/*.js',
+            'inc/settings/js/**/*.js',
+            'inc/panels-lite/js/**/*.js',
             '!{node_modules,node_modules/**}',  // Ignore node_modules/ and contents
             '!{tests,tests/**}',                // Ignore tests/ and contents
             '!{tmp,tmp/**}'                     // Ignore tmp/ and contents
@@ -102,9 +110,9 @@ gulp.task('copy', ['version', 'sass', 'minify'], function () {
             '**/!(*.js|*.scss|*.md|style.css|woocommerce.css)',   // Everything except .js and .scss files
             '!{build,build/**}',                // Ignore build/ and contents
             '!{sass,sass/**}',                  // Ignore sass/ and contents
-            'settings/chosen/*.js',             // Ensure necessary .js files ignored in the first glob are copied
-            '!{settings/bin,settings/bin/**}',  // Ignore settings/bin/ and contents
-            '!{settings/README.md}',            // Ignore settings/README.md
+            'inc/settings/chosen/*.js',             // Ensure necessary .js files ignored in the first glob are copied
+            '!{inc/settings/bin,inc/settings/bin/**}',  // Ignore settings/bin/ and contents
+            '!{inc/settings/README.md}',            // Ignore settings/README.md
             '!{tests,tests/**}',                // Ignore tests/ and contents
             '!{tmp,tmp/**}',                    // Ignore tmp/ and contents
             '!phpunit.xml',                     // Not the unit tests configuration file. (If there is one.)
@@ -129,10 +137,10 @@ gulp.task('build:release', ['move'], function () {
 });
 
 gulp.task('build:dev', ['sass'], function () {
-    console.log('Watching SASS files...');
+    console.log('Watching SASS and LESS files...');
     gulp.watch([
-        'settings/css/**/*.scss',
-        'sass/**/*.scss'
+        'inc/settings/css/**/*.scss',
+        'inc/sass/**/*.scss'
     ], ['sass']);
 });
 

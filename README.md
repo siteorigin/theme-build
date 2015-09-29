@@ -1,19 +1,14 @@
-# theme-build
-Generic gulp script to prepare SiteOrigin themes for the wordpress.org theme directory.
-
 # Building SiteOrigin themes
-
 There are few steps necessary to prepare a theme for release on the WordPress.org plugin directory. We use [Gulp](http://gulpjs.com/) to automate this.
 
 ## Environment setup
-
 1. [Download](https://nodejs.org/download/) and install Node.js and npm.
-2. In the theme folder, ensure the theme-build submodule has been checked out in a folder called 'build' and is up to date.
-3. In a terminal, navigate to the build directory in the theme and run `npm install`
-3. Get some coffee while npm installs the required packages.
+2. Install gulp using `npm install -g gulp`.
+3. In the theme folder, ensure the theme-build submodule has been checked out in a folder called 'build' and is up to date.
+4. In a terminal, navigate to the build directory in the theme and run `npm install`
+5. Get some coffee while npm installs the required packages.
 
 ## Running builds
-
 There are two build tasks, `build:release` and `build:dev`.
 
 The release task performs the following subtasks:
