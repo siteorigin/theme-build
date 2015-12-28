@@ -140,7 +140,7 @@ gulp.task('build:dev', ['sass'], function () {
     console.log('Watching SASS and LESS files...');
     gulp.watch([
         'inc/settings/css/**/*.scss',
-        'inc/sass/**/*.scss'
+        'sass/**/*.scss'
     ], ['sass']);
 });
 
