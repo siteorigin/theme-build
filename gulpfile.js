@@ -110,6 +110,7 @@ gulp.task('copy', ['version', 'sass', 'minify'], function () {
             '**/!(*.js|*.scss|*.md|style.css|woocommerce.css)',   // Everything except .js and .scss files
             '!{build,build/**}',                // Ignore build/ and contents
             '!{sass,sass/**}',                  // Ignore sass/ and contents
+            '!{design,design/**}',                  // Ignore design/ and contents
             'inc/settings/chosen/*.js',             // Ensure necessary .js files ignored in the first glob are copied
             '!{inc/settings/bin,inc/settings/bin/**}',  // Ignore settings/bin/ and contents
             '!{inc/settings/README.md}',            // Ignore settings/README.md
