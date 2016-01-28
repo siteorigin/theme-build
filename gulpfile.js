@@ -10,6 +10,8 @@ var uglify = require('gulp-uglify');
 var zip = require('gulp-zip');
 var path = require('path');
 
+var gitcontribs = require('./gitcontribs.js');
+
 var args = {};
 if(process.argv.length > 2) {
     var arr = process.argv.slice(2);
@@ -24,7 +26,8 @@ if(process.argv.length > 2) {
 
 //Change current working directory to theme root directory.
 process.chdir('..');
-var pathParts = process.cwd().split(path.sep);
+var themeRoot = process.cwd();
+var pathParts = themeRoot.split(path.sep);
 var themeSlug = pathParts[pathParts.length - 1];
 var outDir = args.target == 'build:dev' ? '.' : 'dist';
 if( args.target == 'build:dev') args.v = 'dev';
@@ -33,6 +36,13 @@ gulp.task('clean', function () {
     if( outDir != '.') {
         del([outDir]);
     }
+});
+
+gulp.task('contribs', function() {
+  var files = ['**/*.php'];
+  return gulp.src(files)
+    .pipe(gitcontribs({cwd:themeRoot}))
+    .pipe(gulp.dest('tmp'));
 });
 
 gulp.task('i18n', ['clean'], function() {
