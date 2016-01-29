@@ -39,7 +39,15 @@ gulp.task('clean', function () {
 });
 
 gulp.task('contribs', function() {
-  var files = ['**/*.php'];
+  var files = [
+    '**/*',
+    '!{build,build/**}',                      // Ignore build/ submodule
+    '!{inc/settings,inc/settings/**}',        // Ignore settings submodule
+    '!{inc/panels-lite,inc/panels-lite/**}',  // Ignore panels-lite submodule
+    '!{languages,languages/**}',              // Ignore languages
+    '!{tests,tests/**}',                      // Ignore tests/ and contents if any
+    '!{tmp,tmp/**}'                           // Ignore tmp/ and contents if any
+  ];
   return gulp.src(files)
     .pipe(gitcontribs({cwd:themeRoot}))
     .pipe(gulp.dest('tmp'));
