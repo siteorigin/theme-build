@@ -34,18 +34,20 @@ function gitcontribs(options) {
         '^author (.*)\\n' +                     // Author name
         '^author-mail <(.*)>\\n' +              // Author email
         '^author-time (\\d+)\\n' +              // Author time (in ms)
-        '[\\w\\W]*?\\n' +                       // Should lazily match anything until...
-        '^[ \\t]+(.*)',                            // ... a line beginning with whitespace followed by the line contents.
+        '([\\w\\W]*?)\\n' +                       // Should lazily match anything until...
+        '^\\t(.*)',                            // ... a line beginning with a tab followed by the line contents.
         'gm'
       );
 
       var match;
       while (match = blameRegex.exec(stdout)) {
-        var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0};
-        if(match[5]) {
+        var boundary = match[5].match(/^boundary$/gm);
+        var lineContent = match[6].trim();
+        if(!boundary && lineContent) {
+          var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0};
           contrib.loc++;
+          contributors[match[2]] = contrib;
         }
-        contributors[match[2]] = contrib;
       }
       // Don't return files else they are copied to the directory passed to dest. Output is the contributors.txt file.
       // TODO: I think this means streaming ends. i.e. no pipe calls can be used after this one.
