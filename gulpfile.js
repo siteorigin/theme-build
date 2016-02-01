@@ -48,7 +48,10 @@ gulp.task('contribs', ['clean'], function() {
     '!{tests,tests/**}',                      // Ignore tests/ and contents if any
     '!{tmp,tmp/**}'                           // Ignore tmp/ and contents if any
   ];
-  var skipCommits = [];
+  var skipCommits = [
+    // Ignores uncommitted changes.
+    '0000000000000000000000000000000000000000',
+  ];
   return gulp.src(files)
     .pipe(gitcontribs({cwd:themeRoot, skipCommits: skipCommits, skipBoundary: true}))
     .pipe(gulp.dest('tmp'));
