@@ -68,7 +68,7 @@ gulp.task('i18n', ['clean'], function() {
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : 'languages'));
 });
 
-gulp.task('version', ['clean'], function() {
+gulp.task('version', ['contribs'], function() {
     if(typeof args.v == "undefined") {
         console.log("version task requires version number argument.");
         console.log("E.g. gulp release 1.2.3");
