@@ -38,7 +38,7 @@ gulp.task('clean', function () {
     }
 });
 
-gulp.task('contribs', function() {
+gulp.task('contribs', ['clean'], function() {
   var files = [
     '**/*',
     '!{build,build/**}',                      // Ignore build/ submodule
@@ -48,8 +48,9 @@ gulp.task('contribs', function() {
     '!{tests,tests/**}',                      // Ignore tests/ and contents if any
     '!{tmp,tmp/**}'                           // Ignore tmp/ and contents if any
   ];
+  var skipCommits = [];
   return gulp.src(files)
-    .pipe(gitcontribs({cwd:themeRoot}))
+    .pipe(gitcontribs({cwd:themeRoot, skipCommits: skipCommits, skipBoundary: true}))
     .pipe(gulp.dest('tmp'));
 });
 

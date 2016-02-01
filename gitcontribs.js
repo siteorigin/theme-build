@@ -22,12 +22,13 @@ function gitcontribs(options) {
     this.emit('end');
   };
 
+  var skip = options.skipCommits;
   var extractContribs = function(file, encoding, callback) {
     // Using line porcelain format: https://git-scm.com/docs/git-blame#_the_porcelain_format
     // More verbose, but makes parsing easier.
     var contribCmd = 'git blame --line-porcelain ' + file.path;
 
-    // NB! Set maxBuffer to 1000Kb to handle large files. TODO: Investigate using child_process.spawn instead of exec.
+    // NB! Set maxBuffer to 1000KB to handle large files. TODO: Investigate using child_process.spawn instead of exec.
     exec(contribCmd, {cwd:options.cwd, maxBuffer:1000*1024}, function(error, stdout, stderr) {
       var blameRegex = new RegExp(
         '^([a-fA-F0-9]*)(?:\\s\\d+){2,3}\\n' +   // Commit hash followed by original and final line numbers and number of lines in this commit group, if there is one
@@ -41,16 +42,22 @@ function gitcontribs(options) {
 
       var match;
       while (match = blameRegex.exec(stdout)) {
-        var boundary = match[5].match(/^boundary$/gm);
-        var lineContent = match[6].trim();
-        if(!boundary && lineContent) {
-          var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0};
-          contrib.loc++;
-          contributors[match[2]] = contrib;
+        var index = (skip && skip.length) ? skip.indexOf(match[1]) : -1;
+        if(index !== -1) continue;
+
+        if(options.skipBoundary && match[5].match(/^boundary$/gm)) {
+          continue;
         }
+
+        var lineContent = match[6].trim();
+        if(!lineContent) {
+          continue;
+        }
+        var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0};
+        contrib.loc++;
+        contributors[match[2]] = contrib;
       }
       // Don't return files else they are copied to the directory passed to dest. Output is the contributors.txt file.
-      // TODO: I think this means streaming ends. i.e. no pipe calls can be used after this one.
       callback(null, null);
     });
   };
