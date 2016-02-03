@@ -59,7 +59,8 @@ gulp.task('contribs', ['clean'], function() {
   };
 
   var decayFunction = function(date, score) {
-    var t = new Date().getTime() - date;
+    // date in milliseconds
+    var t = new Date().getTime() - parseInt(date);
     //Half life of about a year
     var halfLife = 1000 * 60 * 60 * 24 * 365;
     return score * Math.pow(0.5, (t / halfLife));

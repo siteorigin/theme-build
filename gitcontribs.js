@@ -73,7 +73,8 @@ function gitcontribs(options) {
         var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0, score:0};
         contrib.loc++;
         var lineScore = typeof options.scoreFunction === 'function' ? options.scoreFunction(lineContent) : 1;
-        lineScore = typeof options.decayFunction === 'function' ? options.decayFunction(match[4], lineScore) : lineScore;
+        // git uses Unix timestamp (in seconds), so need to multiply by 1000 for JS time manipulation (in milliseconds).
+        lineScore = typeof options.decayFunction === 'function' ? options.decayFunction(match[4]*1000, lineScore) : lineScore;
         contrib.score += lineScore;
         contributors[match[2]] = contrib;
       }
