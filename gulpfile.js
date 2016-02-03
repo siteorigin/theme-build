@@ -48,12 +48,27 @@ gulp.task('contribs', ['clean'], function() {
     '!{tests,tests/**}',                      // Ignore tests/ and contents if any
     '!{tmp,tmp/**}'                           // Ignore tmp/ and contents if any
   ];
-  var skipCommits = [
-    // Ignores uncommitted changes.
-    '0000000000000000000000000000000000000000',
-  ];
+
+  var scoreFunction = function(line) {
+    var score = 0;
+    if(line) {
+      score = line.replace(/\s/g, '').length;
+      score = Math.log10(score + 100) - 2;
+    }
+    return score;
+  };
+
+  var decayFunction = function(date, score) {
+    return (date ? 1 : 0) * score;
+  };
+
   return gulp.src(files)
-    .pipe(gitcontribs({cwd:themeRoot, skipCommits: skipCommits, skipBoundary: true}))
+    .pipe(gitcontribs({
+      cwd:themeRoot,
+      skipBoundary: true,
+      scoreFunction:scoreFunction,
+      decayFunction:decayFunction,
+    }))
     .pipe(gulp.dest('tmp'));
 });
 

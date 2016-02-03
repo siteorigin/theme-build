@@ -3,7 +3,10 @@
 var through = require('through2');
 var exec = require('child_process').exec;
 var gutil = require('gulp-util');
+var PluginError = require('gulp-util').PluginError;
 var File = gutil.File;
+
+var PLUGIN_NAME = "gulp-git-contributors";
 
 function gitcontribs(options) {
 
@@ -23,18 +26,30 @@ function gitcontribs(options) {
     callback();
   };
 
-  var skip = options.skipCommits;
+  // Ignores uncommitted changes.
+  var skipCommits = ['0000000000000000000000000000000000000000'];
+  if(options.skipCommits && options.skipCommits.length) {
+    skipCommits = skipCommits.concat(options.skipCommits);
+  }
+
+  var skipBoundary = typeof options.skipBoundary === 'undefined' ? true : options.skipBoundary;
+
   var extractContribs = function(file, encoding, callback) {
     if (file.isNull()) {
       // nothing to do
-      return callback(null, file);
+      return callback(null, null);
+    }
+
+    if(file.isStream()) {
+      // file.contents is a Stream - https://nodejs.org/api/stream.html
+      this.emit('error', new PluginError(PLUGIN_NAME, 'Streams not supported!'));
     }
 
     // Using line porcelain format: https://git-scm.com/docs/git-blame#_the_porcelain_format
     // More verbose, but makes parsing easier.
     var contribCmd = 'git blame --line-porcelain ' + file.path;
 
-    // NB! Set maxBuffer to 1000KB to handle large files. TODO: Investigate using child_process.spawn instead of exec.
+    // NB! Set maxBuffer to 1000KB to handle larger files.
     exec(contribCmd, {cwd:options.cwd, maxBuffer:1000*1024}, function(error, stdout, stderr) {
       var blameRegex = new RegExp(
         '^([a-fA-F0-9]*)(?:\\s\\d+){2,3}\\n' +  // Commit hash followed by original and final line numbers and number of lines in this commit group, if there is one
@@ -45,25 +60,24 @@ function gitcontribs(options) {
         '^\\t(.*)',                             // ... a line beginning with a tab followed by the line contents.
         'gm'
       );
-
       var match;
       while (match = blameRegex.exec(stdout)) {
-        var index = (skip && skip.length) ? skip.indexOf(match[1]) : -1;
+        var lineContent = match[6].trim();
+        if(!lineContent) continue;
+
+        if(skipBoundary && match[5].match(/^boundary$/gm)) continue;
+
+        var index = (skipCommits && skipCommits.length) ? skipCommits.indexOf(match[1]) : -1;
         if(index !== -1) continue;
 
-        if(options.skipBoundary && match[5].match(/^boundary$/gm)) {
-          continue;
-        }
-
-        var lineContent = match[6].trim();
-        if(!lineContent) {
-          continue;
-        }
-        var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0};
+        var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0, score:0};
         contrib.loc++;
+        var lineScore = typeof options.scoreFunction === 'function' ? options.scoreFunction(lineContent) : 1;
+        lineScore = typeof options.decayFunction === 'function' ? options.decayFunction(match[4], lineScore) : lineScore;
+        contrib.score += lineScore;
         contributors[match[2]] = contrib;
       }
-      callback(null, file);
+      callback(null, null);
     });
   };
   return through.obj(extractContribs, saveContribs);
