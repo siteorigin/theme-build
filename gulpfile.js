@@ -1,3 +1,4 @@
+var config = require('../build-config.js');
 var gulp = require('gulp');
 var wpPot = require('gulp-wp-pot');
 var sort = require('gulp-sort');
@@ -10,7 +11,7 @@ var uglify = require('gulp-uglify');
 var zip = require('gulp-zip');
 var path = require('path');
 
-var gitcontribs = require('./gitcontribs.js');
+var gitContributors = require('./gulp-git-contributors.js');
 
 var args = {};
 if(process.argv.length > 2) {
@@ -38,17 +39,7 @@ gulp.task('clean', function () {
     }
 });
 
-gulp.task('contribs', ['clean'], function() {
-  var files = [
-    '**/*',
-    '!{build,build/**}',                      // Ignore build/ submodule
-    '!{inc/settings,inc/settings/**}',        // Ignore settings submodule
-    '!{inc/panels-lite,inc/panels-lite/**}',  // Ignore panels-lite submodule
-    '!{languages,languages/**}',              // Ignore languages
-    '!{tests,tests/**}',                      // Ignore tests/ and contents if any
-    '!{tmp,tmp/**}'                           // Ignore tmp/ and contents if any
-  ];
-
+gulp.task('contributors', ['clean'], function() {
   var scoreFunction = function(line) {
     var score = 0;
     if(line) {
@@ -66,12 +57,13 @@ gulp.task('contribs', ['clean'], function() {
     return score * Math.pow(0.5, (t / halfLife));
   };
 
-  return gulp.src(files)
-    .pipe(gitcontribs({
+  return gulp.src(config.contributors.src)
+    .pipe(gitContributors({
       cwd:themeRoot,
       skipBoundary: true,
       scoreFunction:scoreFunction,
       decayFunction:decayFunction,
+      skipCommits: config.contributors.skipCommits,
     }))
     .pipe(gulp.dest('tmp'));
 });
@@ -90,13 +82,13 @@ gulp.task('i18n', ['clean'], function() {
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : 'languages'));
 });
 
-gulp.task('version', ['contribs'], function() {
+gulp.task('version', ['contributors'], function() {
     if(typeof args.v == "undefined") {
         console.log("version task requires version number argument.");
         console.log("E.g. gulp release 1.2.3");
         return;
     }
-    return gulp.src(['functions.php', 'readme.txt'])
+    return gulp.src(config.version.src)
         .pipe(replace(/(Stable tag:).*/, '$1 '+args.v))
         .pipe(replace(/(Version:).*/, '$1 '+args.v))
         .pipe(replace(/(define\('SITEORIGIN_THEME_VERSION', ').*('\);)/, '$1'+args.v+'$2'))
@@ -104,22 +96,25 @@ gulp.task('version', ['contribs'], function() {
         .pipe(gulp.dest('tmp'));
 });
 
-gulp.task('settings-sass', ['clean'], function(){
-    return gulp.src(['inc/settings/css/**/*.scss'], {base: '.'})
-        .pipe(sass({includePaths: ['inc/settings/css'], outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
+gulp.task('external-sass', ['clean'], function(){
+    return gulp.src(config.sass.external.src, {base: '.'})
+        .pipe(sass({
+            includePaths: config.sass.external.include,
+            outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
+        }))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('panels-lite-less', ['clean'], function(){
-    return gulp.src(['inc/panels-lite/css/**/*.less'], {base: '.'})
-        .pipe(less({paths: ['inc/panels-lite/css'], compress: args.target == 'build:release'}))
+gulp.task('external-less', ['clean'], function(){
+    return gulp.src(config.less.external.src, {base: '.'})
+        .pipe(less({paths: config.less.external.include, compress: args.target == 'build:release'}))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('sass', ['settings-sass', 'panels-lite-less'], function() {
-    return gulp.src(['sass/**/*.scss'])
+gulp.task('sass', ['external-sass', 'external-less'], function() {
+    return gulp.src(config.sass.src)
         .pipe(replace(/(Version:).*/, '$1 '+args.v))
-        .pipe(sass({includePaths: ['sass'], outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
+        .pipe(sass({includePaths: config.sass.include, outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
@@ -128,15 +123,7 @@ gulp.task('concat', ['clean'], function () {
 });
 
 gulp.task('minify', ['concat'], function () {
-    return gulp.src(
-        [
-            'js/**/*.js',
-            'inc/settings/js/**/*.js',
-            'inc/panels-lite/js/**/*.js',
-            '!{node_modules,node_modules/**}',  // Ignore node_modules/ and contents
-            '!{tests,tests/**}',                // Ignore tests/ and contents
-            '!{tmp,tmp/**}'                     // Ignore tmp/ and contents
-        ], {base: '.'})
+    return gulp.src(config.js.src, {base: '.'})
         // This will output the non-minified version
         .pipe(gulp.dest('tmp'))
         .pipe(rename({ suffix: '.min' }))
@@ -146,21 +133,7 @@ gulp.task('minify', ['concat'], function () {
 
 gulp.task('copy', ['version', 'sass', 'minify'], function () {
     //Just copy remaining files.
-    return gulp.src(
-        [
-            '**/!(*.js|*.scss|*.md|style.css|woocommerce.css)',   // Everything except .js and .scss files
-            '!{build,build/**}',                // Ignore build/ and contents
-            '!{sass,sass/**}',                  // Ignore sass/ and contents
-            'inc/settings/chosen/*.js',             // Ensure necessary .js files ignored in the first glob are copied
-            '!{inc/settings/bin,inc/settings/bin/**}',  // Ignore settings/bin/ and contents
-            '!{inc/settings/README.md}',            // Ignore settings/README.md
-            '!{tests,tests/**}',                // Ignore tests/ and contents
-            '!{tmp,tmp/**}',                    // Ignore tmp/ and contents
-            '!phpunit.xml',                     // Not the unit tests configuration file. (If there is one.)
-            '!functions.php',                   // Not the functions .php file. It is copied by the 'version' task.
-            '!readme.txt',                      // Not the readme.txt file. It is copied by the 'version' task.
-            '!npm-debug.log'                    // Ignore debug log from NPM if it's there
-        ], {base: '.'})
+    return gulp.src(config.copy.src, {base: '.'})
         .pipe(gulp.dest('tmp'));
 });
 
@@ -180,8 +153,9 @@ gulp.task('build:release', ['move'], function () {
 gulp.task('build:dev', ['sass'], function () {
     console.log('Watching SASS and LESS files...');
     gulp.watch([
-        'inc/settings/css/**/*.scss',
-        'inc/sass/**/*.scss'
+        config.sass.src,
+        config.sass.external.src,
+        config.less.external.src
     ], ['sass']);
 });
 
