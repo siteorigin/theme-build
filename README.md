@@ -4,7 +4,7 @@ There are few steps necessary to prepare a theme for release on the WordPress.or
 ## Environment setup
 1. [Download](https://nodejs.org/download/) and install Node.js and npm.
 2. Install gulp using `npm install -g gulp`.
-3. In the theme folder, ensure the theme-build submodule has been checked out in a folder called 'build' and is up to date.
+3. In the theme folder, ensure the theme-build repository has been added as a submodule in a folder called 'build' and is up to date. This can be done using `git submodule add git@github.com:siteorigin/theme-build.git build`
 4. In a terminal, navigate to the build directory in the theme and run `npm install`
 5. Get some coffee while npm installs the required packages.
 
