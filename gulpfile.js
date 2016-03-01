@@ -56,8 +56,9 @@ gulp.task('contributors', ['clean'], function() {
     var halfLife = 1000 * 60 * 60 * 24 * 365;
     return score * Math.pow(0.5, (t / halfLife));
   };
-
-  return gulp.src(config.contributors.src)
+  // Append the output directory to be ignored. It gets deleted in the 'clean' task.
+  var contribsSrc = config.contributors.src.concat(['!{' + outDir + ',' + outDir + '/**}']);
+  return gulp.src(contribsSrc)
     .pipe(gitContributors({
       cwd:themeRoot,
       skipBoundary: true,
