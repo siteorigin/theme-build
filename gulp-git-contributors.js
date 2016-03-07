@@ -5,6 +5,7 @@ var exec = require('child_process').exec;
 var gUtil = require('gulp-util');
 var PluginError = require('gulp-util').PluginError;
 var File = gUtil.File;
+var md5 = require('md5');
 
 var PLUGIN_NAME = "gulp-git-contributors";
 
@@ -70,7 +71,7 @@ function gitContributors(options) {
         var index = (skipCommits && skipCommits.length) ? skipCommits.indexOf(match[1]) : -1;
         if(index !== -1) continue;
 
-        var contrib = contributors[match[2]] || {name:match[2], email:match[3], loc:0, score:0};
+        var contrib = contributors[match[2]] || {name:match[2], email:md5(match[3]), loc:0, score:0};
         contrib.loc++;
         var lineScore = typeof options.scoreFunction === 'function' ? options.scoreFunction(lineContent) : 1;
         // git uses Unix timestamp (in seconds), so need to multiply by 1000 for JS time manipulation (in milliseconds).
