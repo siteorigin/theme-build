@@ -10,20 +10,33 @@ var less = require('gulp-less');
 var uglify = require('gulp-uglify');
 var zip = require('gulp-zip');
 var path = require('path');
+var gutil = require('gulp-util');
 
 var gitContributors = require('./gulp-git-contributors.js');
 
 var args = {};
 if(process.argv.length > 2) {
     var arr = process.argv.slice(2);
-    args.target = arr[0];
     for (var i = 0; i < arr.length; i++) {
         var argName = arr[i];
-        if(argName.match(/-\w+/i)) {
+        if(argName.match(/build:/)) {
+          args.target = argName;
+        }
+        else if(argName.match(/-\w+/i)) {
             args[argName.slice(1)] = arr[i + 1];
         }
     }
 }
+
+var catchDevErrors = function(plugin) {
+    if(args.target == 'build:dev') {
+        plugin.on('error', function (error) {
+          gutil.log(error);
+          plugin.end();
+        });
+    }
+    return plugin;
+};
 
 //Change current working directory to theme root directory.
 process.chdir('..');
@@ -101,23 +114,29 @@ gulp.task('version', ['contributors'], function() {
 
 gulp.task('external-sass', ['clean'], function(){
     return gulp.src(config.sass.external.src, {base: '.'})
-        .pipe(sass({
-            includePaths: config.sass.external.include,
-            outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
-        }))
+        .pipe(catchDevErrors(sass({
+          includePaths: config.sass.external.include,
+          outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
+        })))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
 gulp.task('external-less', ['clean'], function(){
     return gulp.src(config.less.external.src, {base: '.'})
-        .pipe(less({paths: config.less.external.include, compress: args.target == 'build:release'}))
+        .pipe(catchDevErrors(less({
+          paths: config.less.external.include,
+          compress: args.target == 'build:release'
+        })))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
 gulp.task('sass', ['external-sass', 'external-less'], function() {
     return gulp.src(config.sass.src)
         .pipe(replace(/(Version:).*/, '$1 '+args.v))
-        .pipe(sass({includePaths: config.sass.include, outputStyle: args.target == 'build:release' ? 'compress' : 'nested'}))
+        .pipe(catchDevErrors(sass({
+          includePaths: config.sass.include,
+          outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
+        })))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
@@ -154,7 +173,7 @@ gulp.task('build:release', ['move'], function () {
 });
 
 gulp.task('build:dev', ['sass'], function () {
-    console.log('Watching SASS and LESS files...');
+    gutil.log('Watching SASS and LESS files...');
     gulp.watch([
         config.sass.src,
         config.sass.external.src,
