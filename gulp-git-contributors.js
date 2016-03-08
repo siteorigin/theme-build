@@ -17,9 +17,16 @@ function gitContributors(options) {
 	var saveContribs = function (callback) {
 		var target = new File();
 
-		var content = new Buffer(JSON.stringify(contributors, null, 2));
+		var output = JSON.stringify(contributors, null, '\t');
 
-		target.path = 'contributors.json';
+		if(options.format === 'php') {
+			output = '<?php\nreturn json_decode( \'' + output + '\', true );'
+		} else {
+			options.format = 'json';
+		}
+
+		var content = new Buffer(output);
+		target.path = 'contributors.' + options.format;
 		target.contents = content;
 
 		this.emit('data', target);

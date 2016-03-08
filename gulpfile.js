@@ -81,6 +81,7 @@ gulp.task('contributors', ['clean'], function () {
 			decayFunction: decayFunction,
 			skipCommits: config.contributors.skipCommits,
 			hideEmails: true,
+			format: 'php',
 		}))
 		.pipe(gulp.dest('tmp'));
 });
