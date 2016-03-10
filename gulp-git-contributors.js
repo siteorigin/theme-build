@@ -79,13 +79,13 @@ function gitContributors(options) {
 				var index = (skipCommits && skipCommits.length) ? skipCommits.indexOf(match[1]) : -1;
 				if (index !== -1) continue;
 				var email = options.hideEmails ? md5(match[3]) : match[3];
-				var contrib = contributors[match[2]] || {name: match[2], email: email, loc: 0, score: 0};
+				var contrib = contributors[email] || {name: match[2], email: email, loc: 0, score: 0};
 				contrib.loc++;
 				var lineScore = typeof options.scoreFunction === 'function' ? options.scoreFunction(lineContent) : 1;
 				// git uses Unix timestamp (in seconds), so need to multiply by 1000 for JS time manipulation (in milliseconds).
 				lineScore = typeof options.decayFunction === 'function' ? options.decayFunction(match[4] * 1000, lineScore) : lineScore;
 				contrib.score += lineScore;
-				contributors[match[2]] = contrib;
+				contributors[email] = contrib;
 			}
 			callback(null, null);
 		});
