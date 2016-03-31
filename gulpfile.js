@@ -32,7 +32,7 @@ var catchDevErrors = function (plugin) {
 	if (args.target == 'build:dev') {
 		plugin.on('error', function (error) {
 			gutil.log(error);
-			plugin.end();
+			plugin.emit('end');
 		});
 	}
 	return plugin;
