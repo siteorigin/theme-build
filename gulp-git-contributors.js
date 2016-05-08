@@ -14,17 +14,28 @@ module.exports = function (options) {
 
 	var contributors = {};
 
-	var saveContribs = function (callback) {
+	var saveContribs = function ( callback ) {
 		var target = new File();
 
+		var toSort = [];
 		if( Object.keys( contributors ).length > 0 ) {
 			for ( var i in contributors ) {
 				// We only need contributors score to 2 decimal places
 				contributors[i].score = Math.round( contributors[i].score * 100 ) / 100;
+				toSort.push( contributors[i] );
 			}
 		}
 
-		var output = JSON.stringify( contributors, null, '\t' );
+		toSort.sort( function( a, b ){
+			return a.score > b.score ? -1 : 1;
+		} );
+
+		var toSave = {};
+		for( var i = 0; i < toSort.length; i++ ) {
+			toSave[ toSort[i].email ] = toSort[i];
+		}
+
+		var output = JSON.stringify( toSave, null, '\t' );
 
 		if(options.format === 'php') {
 			output = '<?php\nreturn json_decode( \'' + output + '\', true );';
@@ -49,15 +60,7 @@ module.exports = function (options) {
 	 * @param fileExtension The file extension of this file
 	 * @returns {number}
 	 */
-	var scoreFunction = function( line, fileExtension ) {
-		var score = 0;
-		if ( line ) {
-			// Judge longer lines as more valuable
-			score = line.replace( /\s/g, '' ).length;
-			score = Math.log10(score + 100) - 2;
-		}
-		return score;
-	};
+	var scoreFunction = require('./score/line-score.js');
 
 	/**
 	 * Decay function gives contributions a half-life.
@@ -66,14 +69,7 @@ module.exports = function (options) {
 	 * @param score
 	 * @returns {number}
 	 */
-	var decayFunction = function( date, score ) {
-		// date in milliseconds
-		var t = new Date().getTime() - parseInt( date );
-
-		//Half life of about a year
-		var halfLife = 1000 * 60 * 60 * 24 * 365;
-		return score * Math.pow( 0.5, (t / halfLife) );
-	};
+	var decayFunction = require('./score/decay.js');
 
 	options.scoreFunction = options.scoreFunction || scoreFunction;
 	options.decayFunction = options.decayFunction || decayFunction;
