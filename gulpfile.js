@@ -55,30 +55,12 @@ gulp.task('clean', function () {
 gulp.task('contributors', ['clean'], function () {
 	if (typeof config.contributors === 'undefined') return;
 
-	var scoreFunction = function (line) {
-		var score = 0;
-		if (line) {
-			score = line.replace(/\s/g, '').length;
-			score = Math.log10(score + 100) - 2;
-		}
-		return score;
-	};
-
-	var decayFunction = function (date, score) {
-		// date in milliseconds
-		var t = new Date().getTime() - parseInt(date);
-		//Half life of about a year
-		var halfLife = 1000 * 60 * 60 * 24 * 365;
-		return score * Math.pow(0.5, (t / halfLife));
-	};
 	// Append the output directory to be ignored. It gets deleted in the 'clean' task.
 	var contribsSrc = config.contributors.src.concat(['!{' + outDir + ',' + outDir + '/**}']);
 	return gulp.src(contribsSrc)
 		.pipe(gitContributors({
 			cwd: themeRoot,
 			skipBoundary: true,
-			scoreFunction: scoreFunction,
-			decayFunction: decayFunction,
 			skipCommits: config.contributors.skipCommits,
 			hideEmails: true,
 			format: 'php',
