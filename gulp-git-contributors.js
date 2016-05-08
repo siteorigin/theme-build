@@ -33,7 +33,7 @@ module.exports = function (options) {
 		}
 
 		var content = new Buffer(output);
-		target.path = 'contributors.' + options.format;
+		target.path =  ( options.outputPath || '' ) + 'contributors.' + options.format;
 		target.contents = content;
 
 		this.emit('data', target);

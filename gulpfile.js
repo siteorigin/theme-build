@@ -63,7 +63,8 @@ gulp.task('contributors', ['clean'], function () {
 			skipBoundary: true,
 			skipCommits: config.contributors.skipCommits,
 			hideEmails: true,
-			format: 'php',
+			outputPath: 'inc/',
+			format: 'php'
 		}))
 		.pipe(gulp.dest('tmp'));
 });
