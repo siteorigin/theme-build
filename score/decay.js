@@ -1,3 +1,10 @@
+/**
+ * Decay a contribution based on its age.
+ * 
+ * @param date
+ * @param score
+ * @returns {number}
+ */
 module.exports = function( date, score ) {
 	// date in milliseconds
 	var t = new Date().getTime() - parseInt( date );

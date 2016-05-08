@@ -94,6 +94,7 @@ module.exports = function (options) {
 		}
 
 		var fileExtension = file.path.split('.').pop();
+		var fileLines = file.contents.toString().split("\n");
 
 		// Using line porcelain format: https://git-scm.com/docs/git-blame#_the_porcelain_format
 		// More verbose, but makes parsing easier.
@@ -111,6 +112,7 @@ module.exports = function (options) {
 				'gm'
 			);
 			var match;
+			var lineNumber = 0;
 			while ( match = blameRegex.exec( stdout ) ) {
 				var lineContent = match[6].trim();
 
@@ -133,7 +135,10 @@ module.exports = function (options) {
 				contrib.loc++;
 
 				// The line score
-				var lineScore = typeof options.scoreFunction === 'function' ? options.scoreFunction( lineContent, fileExtension ) : lineContent;
+				var lineScore = 1;
+				if( typeof options.scoreFunction === 'function' ) {
+					lineScore = options.scoreFunction( lineContent, lineNumber, fileLines, fileExtension );
+				}
 
 				// git uses Unix timestamp (in seconds), so need to multiply by 1000 for JS time manipulation (in milliseconds).
 				if( typeof options.decayFunction === 'function' ) {
@@ -145,6 +150,8 @@ module.exports = function (options) {
 					contrib.score += lineScore;
 				}
 				contributors[email] = contrib;
+
+				lineNumber++;
 			}
 			callback(null, null);
 		});
