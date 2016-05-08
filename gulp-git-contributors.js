@@ -60,7 +60,7 @@ module.exports = function (options) {
 	 * @param fileExtension The file extension of this file
 	 * @returns {number}
 	 */
-	var scoreFunction = require('./score/line-score.js');
+	var codeScorer = require('./score/code-scorer.js');
 
 	/**
 	 * Decay function gives contributions a half-life.
@@ -71,7 +71,7 @@ module.exports = function (options) {
 	 */
 	var decayFunction = require('./score/decay.js');
 
-	options.scoreFunction = options.scoreFunction || scoreFunction;
+	options.codeScorer = options.codeScorer || codeScorer;
 	options.decayFunction = options.decayFunction || decayFunction;
 
 	// Ignores uncommitted changes.
@@ -93,8 +93,7 @@ module.exports = function (options) {
 			this.emit('error', new PluginError( PLUGIN_NAME, 'Streams not supported!' ) );
 		}
 
-		var fileExtension = file.path.split('.').pop();
-		var fileLines = file.contents.toString().split("\n");
+		options.codeScorer.loadFile( file );
 
 		// Using line porcelain format: https://git-scm.com/docs/git-blame#_the_porcelain_format
 		// More verbose, but makes parsing easier.
@@ -136,9 +135,7 @@ module.exports = function (options) {
 
 				// The line score
 				var lineScore = 1;
-				if( typeof options.scoreFunction === 'function' ) {
-					lineScore = options.scoreFunction( lineContent, lineNumber, fileLines, fileExtension );
-				}
+				lineScore = options.codeScorer.scoreLine( lineContent, lineNumber );
 
 				// git uses Unix timestamp (in seconds), so need to multiply by 1000 for JS time manipulation (in milliseconds).
 				if( typeof options.decayFunction === 'function' ) {
