@@ -23,7 +23,7 @@ module.exports = {
 		// We can perform any other analysis we need here
 	},
 
-	scoreLine: function( line, lineNumber, fileLines, fileExtension ) {
+	scoreLine: function( line, lineNumber ) {
 		var score = 0;
 		if ( line ) {
 			// Judge longer lines as more valuable
