@@ -62,6 +62,7 @@ gulp.task('contributors', ['clean'], function () {
 			cwd: themeRoot,
 			skipBoundary: true,
 			skipCommits: config.contributors.skipCommits,
+			excludeEmails: config.contributors.excludeEmails || [],
 			hideEmails: true,
 			outputPath: 'inc/',
 			format: 'php'

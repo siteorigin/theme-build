@@ -17,11 +17,18 @@ module.exports = function (options) {
 	var saveContribs = function ( callback ) {
 		var target = new File();
 
+		var scoreTotal = 0;
 		var toSort = [];
 		if( Object.keys( contributors ).length > 0 ) {
 			for ( var i in contributors ) {
+				if( options.excludeEmails && options.excludeEmails.indexOf( contributors[i].email ) !== -1 ) {
+					// Skip emails given in the excludeEmails config
+					continue;
+				}
+
 				// We only need contributors score to 2 decimal places
-				contributors[i].score = Math.round( contributors[i].score * 100 ) / 100;
+				contributors[i].score = contributors[i].score;
+				scoreTotal += contributors[i].score;
 				toSort.push( contributors[i] );
 			}
 		}
@@ -32,6 +39,8 @@ module.exports = function (options) {
 
 		var toSave = {};
 		for( var i = 0; i < toSort.length; i++ ) {
+			// Store this contributor's percent contribution with 3 decimal places
+			toSort[i].percent = toSort[i].score / scoreTotal * 100;
 			toSave[ toSort[i].email ] = toSort[i];
 		}
 
