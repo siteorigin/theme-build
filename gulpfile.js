@@ -116,7 +116,7 @@ gulp.task('external-less', ['clean'], function () {
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('sass', ['external-sass', 'external-less'], function () {
+gulp.task('sass', ['external-sass'], function () {
 	return gulp.src(config.sass.src)
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
 		.pipe(catchDevErrors(sass({
@@ -124,6 +124,20 @@ gulp.task('sass', ['external-sass', 'external-less'], function () {
 			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
 		})))
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+});
+
+gulp.task('less', ['external-less'], function () {
+	return gulp.src(config.less.src)
+		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
+		.pipe(catchDevErrors(less({
+			paths: config.less.include,
+			compress: args.target == 'build:release'
+		})))
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+});
+
+gulp.task('css', ['less', 'sass'], function () {
+
 });
 
 gulp.task('concat', ['clean'], function () {
@@ -139,7 +153,7 @@ gulp.task('minify', ['concat'], function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('copy', ['version', 'sass', 'minify'], function () {
+gulp.task('copy', ['version', 'css', 'minify'], function () {
 	//Just copy remaining files.
 	return gulp.src(config.copy.src, {base: '.'})
 		.pipe(gulp.dest('tmp'));
@@ -158,13 +172,18 @@ gulp.task('build:release', ['move'], function () {
 		.pipe(gulp.dest(outDir));
 });
 
-gulp.task('build:dev', ['sass'], function () {
+gulp.task('build:dev', ['css'], function () {
 	gutil.log('Watching SASS and LESS files...');
 	gulp.watch([
 		config.sass.src,
+		config.sass.include,
 		config.sass.external.src,
-		config.less.external.src
-	], ['sass']);
+		config.sass.external.include,
+		config.less.src,
+		config.less.include,
+		config.less.external.src,
+		config.less.external.include
+	], ['css']);
 });
 
 gulp.task('default', ['build:release'], function () {
