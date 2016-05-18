@@ -98,25 +98,8 @@ gulp.task('version', ['contributors'], function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('external-sass', function () {
-	return gulp.src(config.sass.external.src, {base: '.'})
-		.pipe(catchDevErrors(sass({
-			includePaths: config.sass.external.include,
-			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
-		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
-});
-
-gulp.task('external-less', function () {
-	return gulp.src(config.less.external.src, {base: '.'})
-		.pipe(catchDevErrors(less({
-			paths: config.less.external.include,
-			compress: args.target == 'build:release'
-		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
-});
-
-gulp.task('sass', ['external-sass'], function () {
+gulp.task('sass', function () {
+	console.log('here');
 	return gulp.src(config.sass.src)
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
 		.pipe(catchDevErrors(sass({
@@ -126,11 +109,29 @@ gulp.task('sass', ['external-sass'], function () {
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('less', ['external-less'], function () {
+gulp.task('external-sass', function () {
+	return gulp.src(config.sass.external.src, {base: '.'})
+		.pipe(catchDevErrors(sass({
+			includePaths: config.sass.external.include,
+			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
+		})))
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+});
+
+gulp.task('less', function () {
 	return gulp.src(config.less.src)
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
 		.pipe(catchDevErrors(less({
 			paths: config.less.include,
+			compress: args.target == 'build:release'
+		})))
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+});
+
+gulp.task('external-less', function () {
+	return gulp.src(config.less.external.src, {base: '.'})
+		.pipe(catchDevErrors(less({
+			paths: config.less.external.include,
 			compress: args.target == 'build:release'
 		})))
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
@@ -149,7 +150,7 @@ gulp.task('minify', function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('copy', ['version', 'css', 'minify'], function () {
+gulp.task('copy', ['version', 'less', 'external-less', 'sass', 'external-sass', 'minify'], function () {
 	//Just copy remaining files.
 	return gulp.src(config.copy.src, {base: '.'})
 		.pipe(gulp.dest('tmp'));
@@ -168,21 +169,36 @@ gulp.task('build:release', ['move'], function () {
 		.pipe(gulp.dest(outDir));
 });
 
-gulp.task('build:dev', ['less', 'sass'], function () {
+gulp.task('build:dev', function () {
+
+	gulp.start(
+		'sass',
+		'external-sass',
+		'less',
+		'external-less'
+	);
+
 	gutil.log('Watching SASS files...');
 	gulp.watch([
 		config.sass.src,
 		config.sass.include,
+	], ['sass']);
+
+	gulp.watch([
 		config.sass.external.src,
 		config.sass.external.include,
-	], ['sass']);
+	], ['external-sass']);
+
 	gutil.log('Watching LESS files...');
 	gulp.watch([
 		config.less.src,
 		config.less.include,
+	], ['less']);
+
+	gulp.watch([
 		config.less.external.src,
 		config.less.external.include
-	], ['less']);
+	], ['external-less']);
 });
 
 gulp.task('default', ['build:release'], function () {
