@@ -98,7 +98,7 @@ gulp.task('version', ['contributors'], function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('external-sass', ['clean'], function () {
+gulp.task('external-sass', function () {
 	return gulp.src(config.sass.external.src, {base: '.'})
 		.pipe(catchDevErrors(sass({
 			includePaths: config.sass.external.include,
@@ -107,7 +107,7 @@ gulp.task('external-sass', ['clean'], function () {
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('external-less', ['clean'], function () {
+gulp.task('external-less', function () {
 	return gulp.src(config.less.external.src, {base: '.'})
 		.pipe(catchDevErrors(less({
 			paths: config.less.external.include,
@@ -136,15 +136,11 @@ gulp.task('less', ['external-less'], function () {
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('css', ['less', 'sass'], function () {
+gulp.task('concat', function () {
 
 });
 
-gulp.task('concat', ['clean'], function () {
-
-});
-
-gulp.task('minify', ['concat'], function () {
+gulp.task('minify', function () {
 	return gulp.src(config.js.src, {base: '.'})
 		// This will output the non-minified version
 		.pipe(gulp.dest('tmp'))
@@ -159,7 +155,7 @@ gulp.task('copy', ['version', 'css', 'minify'], function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('move', ['copy'], function () {
+gulp.task('move', ['copy', 'clean'], function () {
 	return gulp.src('tmp/**')
 		.pipe(gulp.dest(outDir + '/' + themeSlug));
 });
@@ -172,18 +168,21 @@ gulp.task('build:release', ['move'], function () {
 		.pipe(gulp.dest(outDir));
 });
 
-gulp.task('build:dev', ['css'], function () {
-	gutil.log('Watching SASS and LESS files...');
+gulp.task('build:dev', ['less', 'sass'], function () {
+	gutil.log('Watching SASS files...');
 	gulp.watch([
 		config.sass.src,
 		config.sass.include,
 		config.sass.external.src,
 		config.sass.external.include,
+	], ['sass']);
+	gutil.log('Watching LESS files...');
+	gulp.watch([
 		config.less.src,
 		config.less.include,
 		config.less.external.src,
 		config.less.external.include
-	], ['css']);
+	], ['less']);
 });
 
 gulp.task('default', ['build:release'], function () {
