@@ -99,7 +99,6 @@ gulp.task('version', ['contributors'], function () {
 });
 
 gulp.task('sass', function () {
-	console.log('here');
 	return gulp.src(config.sass.src)
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
 		.pipe(catchDevErrors(sass({
