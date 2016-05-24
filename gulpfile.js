@@ -98,7 +98,7 @@ gulp.task('version', ['contributors'], function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('sass', function () {
+gulp.task('sass', function ( ) {
 	return gulp.src(config.sass.src)
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
 		.pipe(catchDevErrors(sass({
@@ -168,36 +168,27 @@ gulp.task('build:release', ['move'], function () {
 		.pipe(gulp.dest(outDir));
 });
 
-gulp.task('build:dev', function () {
-
-	gulp.start(
-		'sass',
-		'external-sass',
-		'less',
-		'external-less'
-	);
+gulp.task('build:dev', ['sass', 'external-sass', 'less', 'external-less'], function () {
 
 	gutil.log('Watching SASS files...');
-	gulp.watch([
-		config.sass.src,
-		config.sass.include,
-	], ['sass']);
-
-	gulp.watch([
-		config.sass.external.src,
-		config.sass.external.include,
-	], ['external-sass']);
+	gulp.watch(
+		[ config.sass.src ],
+		['sass']
+	);
+	gulp.watch(
+		[ config.sass.external.src ],
+		['external-sass']
+	);
 
 	gutil.log('Watching LESS files...');
-	gulp.watch([
-		config.less.src,
-		config.less.include,
-	], ['less']);
-
-	gulp.watch([
-		config.less.external.src,
-		config.less.external.include
-	], ['external-less']);
+	gulp.watch(
+		[ config.less.src ],
+		[ 'less' ]
+	);
+	gulp.watch(
+		[ config.less.external.src ],
+		[ 'external-less' ]
+	);
 });
 
 gulp.task('default', ['build:release'], function () {
