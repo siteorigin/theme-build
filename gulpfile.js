@@ -11,6 +11,7 @@ var uglify = require('gulp-uglify');
 var zip = require('gulp-zip');
 var path = require('path');
 var gutil = require('gulp-util');
+var filter = require('gulp-filter');
 
 var gitContributors = require('./gulp-git-contributors.js');
 
@@ -136,10 +137,6 @@ gulp.task('external-less', function () {
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('concat', function () {
-
-});
-
 gulp.task('minify', function () {
 	return gulp.src(config.js.src, {base: '.'})
 		// This will output the non-minified version
@@ -150,9 +147,15 @@ gulp.task('minify', function () {
 });
 
 gulp.task('copy', ['version', 'less', 'external-less', 'sass', 'external-sass', 'minify'], function () {
-	//Just copy remaining files.
+
+	var phpFilter = filter( ['**/*.php'], {restore: true} );
+
+	// Copy the remaining files and replace certain strings in PHP
 	return gulp.src(config.copy.src, {base: '.'})
-		.pipe(gulp.dest('tmp'));
+		.pipe( phpFilter )
+		.pipe( replace( "'siteorigin'", "'" + config.slug + "'") )
+		.pipe( phpFilter.restore )
+		.pipe( gulp.dest('tmp') );
 });
 
 gulp.task('move', ['copy', 'clean'], function () {

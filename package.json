@@ -16,6 +16,7 @@
     "gulp-wp-pot": "^1.0.4",
     "gulp-zip": "^3.0.2",
     "md5": "^2.0.0",
-    "through2": "^2.0.0"
+    "through2": "^2.0.0",
+    "gulp-filter": "^4.0.0"
   }
 }
