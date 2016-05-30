@@ -71,8 +71,8 @@ gulp.task('contributors', ['clean'], function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('i18n', [ ], function () {
-	return gulp.src('**/*.php')
+gulp.task('i18n', [ 'clean' ], function () {
+	return gulp.src(['**/*.php', '!dist/**/*.php'])
 		.pipe(sort())
 		.pipe(wpPot({
 			domain: themeSlug,
