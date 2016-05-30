@@ -71,7 +71,7 @@ gulp.task('contributors', ['clean'], function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('i18n', ['clean'], function () {
+gulp.task('i18n', [ ], function () {
 	return gulp.src('**/*.php')
 		.pipe(sort())
 		.pipe(wpPot({
@@ -82,7 +82,7 @@ gulp.task('i18n', ['clean'], function () {
 			lastTranslator: 'SiteOrigin <support@siteorigin.com>',
 			team: 'SiteOrigin <support@siteorigin.com>'
 		}))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : 'languages'));
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp/languages' : 'languages'));
 });
 
 gulp.task('version', ['contributors'], function () {
@@ -146,7 +146,7 @@ gulp.task('minify', function () {
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('copy', ['version', 'less', 'external-less', 'sass', 'external-sass', 'minify'], function () {
+gulp.task('copy', ['version', 'less', 'external-less', 'sass', 'external-sass', 'minify', 'i18n'], function () {
 
 	var phpFilter = filter( ['**/*.php'], {restore: true} );
 
