@@ -123,7 +123,7 @@ gulp.task('less', function () {
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
 		.pipe(catchDevErrors(less({
 			paths: config.less.include,
-			compress: args.target == 'build:release'
+			compress: false
 		})))
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
@@ -132,7 +132,7 @@ gulp.task('external-less', function () {
 	return gulp.src(config.less.external.src, {base: '.'})
 		.pipe(catchDevErrors(less({
 			paths: config.less.external.include,
-			compress: args.target == 'build:release'
+			compress: false
 		})))
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
