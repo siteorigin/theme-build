@@ -6,7 +6,9 @@
   "devDependencies": {
     "del": "^1.2.0",
     "gulp": "^3.9.0",
+    "gulp-filter": "^4.0.0",
     "gulp-less": "^3.0.3",
+    "gulp-livereload": "^3.8.1",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.3",
     "gulp-sass": "^2.0.4",
@@ -16,7 +18,6 @@
     "gulp-wp-pot": "^1.0.4",
     "gulp-zip": "^3.0.2",
     "md5": "^2.0.0",
-    "through2": "^2.0.0",
-    "gulp-filter": "^4.0.0"
+    "through2": "^2.0.0"
   }
 }

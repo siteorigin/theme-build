@@ -12,6 +12,7 @@ var zip = require('gulp-zip');
 var path = require('path');
 var gutil = require('gulp-util');
 var filter = require('gulp-filter');
+var livereload = require('gulp-livereload');
 
 var gitContributors = require('./gulp-git-contributors.js');
 
@@ -106,7 +107,8 @@ gulp.task('sass', function ( ) {
 			includePaths: config.sass.include,
 			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
 		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+		.pipe(livereload());
 });
 
 gulp.task('external-sass', function () {
@@ -115,7 +117,8 @@ gulp.task('external-sass', function () {
 			includePaths: config.sass.external.include,
 			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
 		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+		.pipe(livereload());
 });
 
 gulp.task('less', function () {
@@ -125,7 +128,8 @@ gulp.task('less', function () {
 			paths: config.less.include,
 			compress: false
 		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+		.pipe(livereload());
 });
 
 gulp.task('external-less', function () {
@@ -134,7 +138,8 @@ gulp.task('external-less', function () {
 			paths: config.less.external.include,
 			compress: false
 		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+		.pipe(livereload());
 });
 
 gulp.task('minify', function () {
@@ -172,7 +177,10 @@ gulp.task('build:release', ['move'], function () {
 });
 
 gulp.task('build:dev', ['sass', 'external-sass', 'less', 'external-less'], function () {
-
+	
+	gutil.log('Starting livereload.');
+	livereload.listen();
+	
 	gutil.log('Watching SASS files...');
 	gulp.watch(
 		[ config.sass.src ],
