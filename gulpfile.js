@@ -1,11 +1,13 @@
 var config = require('../build-config.js');
 var gulp = require('gulp');
+var gulpif = require('gulp-if');
 var wpPot = require('gulp-wp-pot');
 var sort = require('gulp-sort');
 var del = require('del');
 var rename = require('gulp-rename');
 var replace = require('gulp-replace');
 var sass = require('gulp-sass');
+var sourcemaps = require('gulp-sourcemaps');
 var less = require('gulp-less');
 var uglify = require('gulp-uglify');
 var zip = require('gulp-zip');
@@ -103,10 +105,12 @@ gulp.task('version', ['contributors'], function () {
 gulp.task('sass', function ( ) {
 	return gulp.src(config.sass.src)
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
+		.pipe(gulpif(args.target != 'build:release', sourcemaps.init()))
 		.pipe(catchDevErrors(sass({
 			includePaths: config.sass.include,
 			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
 		})))
+		.pipe(gulpif(args.target != 'build:release', sourcemaps.write('./sass/maps')))
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
 		.pipe(livereload());
 });
