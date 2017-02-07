@@ -10,6 +10,7 @@ var sass = require('gulp-sass');
 var sourcemaps = require('gulp-sourcemaps');
 var less = require('gulp-less');
 var uglify = require('gulp-uglify');
+var cssnano = require('gulp-cssnano');
 var zip = require('gulp-zip');
 var path = require('path');
 var gutil = require('gulp-util');
@@ -99,16 +100,16 @@ gulp.task('version', ['contributors'], function () {
 		.pipe(replace(/(Version:\s*).*/, '$1 ' + args.v))
 		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_VERSION', ').*('\s*\);)/, '$1' + args.v + '$2'))
 		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_JS_PREFIX', ').*('\s*\);)/, '$1.min$2'))
+		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_CSS_PREFIX', ').*('\s*\);)/, '$1.min$2'))
 		.pipe(gulp.dest('tmp'));
 });
 
 gulp.task('sass', function ( ) {
 	return gulp.src(config.sass.src)
-		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
+		.pipe(replace(/(Version:\s*).*/, '$1 ' + args.v))
 		.pipe(gulpif(args.target != 'build:release', sourcemaps.init()))
 		.pipe(catchDevErrors(sass({
 			includePaths: config.sass.include,
-			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
 		})))
 		.pipe(gulpif(args.target != 'build:release', sourcemaps.write('./sass/maps')))
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
@@ -119,7 +120,6 @@ gulp.task('external-sass', function () {
 	return gulp.src(config.sass.external.src, {base: '.'})
 		.pipe(catchDevErrors(sass({
 			includePaths: config.sass.external.include,
-			outputStyle: args.target == 'build:release' ? 'compress' : 'nested'
 		})))
 		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
 		.pipe(livereload());
@@ -146,16 +146,18 @@ gulp.task('external-less', function () {
 		.pipe(livereload());
 });
 
-gulp.task('minify', function () {
-	return gulp.src(config.js.src, {base: '.'})
+gulp.task('minify', ['less', 'external-less', 'sass', 'external-sass'], function () {
+	var minSrc = config.js.src.concat(config.css.src);
+	return gulp.src(minSrc, {base: '.'})
 		// This will output the non-minified version
 		.pipe(gulp.dest('tmp'))
 		.pipe(rename({suffix: '.min'}))
-		.pipe(uglify())
+		.pipe(gulpif('*.js', uglify()))
+		.pipe(gulpif('*.css', cssnano()))
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('copy', ['version', 'less', 'external-less', 'sass', 'external-sass', 'minify', 'i18n'], function () {
+gulp.task('copy', ['version', 'minify', 'i18n'], function () {
 
 	var phpFilter = filter( ['**/*.php'], {restore: true} );
 
