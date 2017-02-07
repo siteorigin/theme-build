@@ -95,10 +95,10 @@ gulp.task('version', ['contributors'], function () {
 		return;
 	}
 	return gulp.src(config.version.src)
-		.pipe(replace(/(Stable tag:).*/, '$1 ' + args.v))
-		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
-		.pipe(replace(/(define\('SITEORIGIN_THEME_VERSION', ').*('\);)/, '$1' + args.v + '$2'))
-		.pipe(replace(/(define\('SITEORIGIN_THEME_JS_PREFIX', ').*('\);)/, '$1.min$2'))
+		.pipe(replace(/(Stable tag:\s*).*/, '$1 ' + args.v))
+		.pipe(replace(/(Version:\s*).*/, '$1 ' + args.v))
+		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_VERSION', ').*('\s*\);)/, '$1' + args.v + '$2'))
+		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_JS_PREFIX', ').*('\s*\);)/, '$1.min$2'))
 		.pipe(gulp.dest('tmp'));
 });
 
