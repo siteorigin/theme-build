@@ -206,6 +206,9 @@ gulp.task('build:dev', ['sass', 'external-sass', 'less', 'external-less'], funct
 		[ config.less.external.src ],
 		[ 'external-less' ]
 	);
+	
+	gutil.log('Watching JS files...');
+	gulp.watch( [ config.js.src ], livereload.reload );
 });
 
 gulp.task('default', ['build:release'], function () {
