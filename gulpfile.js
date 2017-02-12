@@ -96,17 +96,17 @@ gulp.task('version', ['contributors'], function () {
 		return;
 	}
 	return gulp.src(config.version.src)
-		.pipe(replace(/(Stable tag:\s*).*/, '$1 ' + args.v))
-		.pipe(replace(/(Version:\s*).*/, '$1 ' + args.v))
-		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_VERSION', ').*('\s*\);)/, '$1' + args.v + '$2'))
-		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_JS_PREFIX', ').*('\s*\);)/, '$1.min$2'))
-		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_CSS_PREFIX', ').*('\s*\);)/, '$1.min$2'))
+		.pipe(replace(/(Stable tag:).*/, '$1 ' + args.v))
+		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
+		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_VERSION', ').*('\);)/, '$1' + args.v + '$2'))
+		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_JS_PREFIX', ').*('\);)/, '$1.min$2'))
+		.pipe(replace(/(define\(\s*'SITEORIGIN_THEME_CSS_PREFIX', ').*('\);)/, '$1.min$2'))
 		.pipe(gulp.dest('tmp'));
 });
 
 gulp.task('sass', function ( ) {
 	return gulp.src(config.sass.src)
-		.pipe(replace(/(Version:\s*).*/, '$1 ' + args.v))
+		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
 		.pipe(gulpif(args.target != 'build:release', sourcemaps.init()))
 		.pipe(catchDevErrors(sass({
 			includePaths: config.sass.include,
@@ -146,18 +146,30 @@ gulp.task('external-less', function () {
 		.pipe(livereload());
 });
 
-gulp.task('minify', ['less', 'external-less', 'sass', 'external-sass'], function () {
-	var minSrc = config.js.src.concat(config.css.src);
-	return gulp.src(minSrc, {base: '.'})
+gulp.task('minifyJs', ['less', 'external-less', 'sass', 'external-sass'], function () {
+	return gulp.src(config.js.src, {base: '.'})
 		// This will output the non-minified version
 		.pipe(gulp.dest('tmp'))
 		.pipe(rename({suffix: '.min'}))
-		.pipe(gulpif('*.js', uglify()))
-		.pipe(gulpif('*.css', cssnano()))
+		.pipe(uglify())
 		.pipe(gulp.dest('tmp'));
 });
 
-gulp.task('copy', ['version', 'minify', 'i18n'], function () {
+gulp.task('minifyCss', ['minifyJs'], function () {
+	var cssSrc = config.css.src;
+	if ( args.target == 'build:release' ) {
+		cssSrc = cssSrc.map(function(src) {
+			return 'tmp/' + src;
+		});
+	}
+	return gulp.src(cssSrc, {base: '.'})
+		.pipe(rename({suffix: '.min'}))
+		.pipe(cssnano())
+		// Already in tmp
+		.pipe(gulp.dest('.'));
+});
+
+gulp.task('copy', ['version', 'minifyCss', 'i18n'], function () {
 
 	var phpFilter = filter( ['**/*.php'], {restore: true} );
 
