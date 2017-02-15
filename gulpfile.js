@@ -112,7 +112,7 @@ gulp.task('sass', function ( ) {
 			includePaths: config.sass.include,
 		})))
 		.pipe(gulpif(args.target != 'build:release', sourcemaps.write('./sass/maps')))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+		.pipe(gulp.dest('.'))
 		.pipe(livereload());
 });
 
@@ -121,7 +121,7 @@ gulp.task('external-sass', function () {
 		.pipe(catchDevErrors(sass({
 			includePaths: config.sass.external.include,
 		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+        .pipe(gulp.dest('.'))
 		.pipe(livereload());
 });
 
@@ -132,7 +132,7 @@ gulp.task('less', function () {
 			paths: config.less.include,
 			compress: false
 		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+        .pipe(gulp.dest('.'))
 		.pipe(livereload());
 });
 
@@ -142,34 +142,30 @@ gulp.task('external-less', function () {
 			paths: config.less.external.include,
 			compress: false
 		})))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'))
+        .pipe(gulp.dest('.'))
 		.pipe(livereload());
 });
 
-gulp.task('minifyJs', ['less', 'external-less', 'sass', 'external-sass'], function () {
-	return gulp.src(config.js.src, {base: '.'})
-		// This will output the non-minified version
-		.pipe(gulp.dest('tmp'))
-		.pipe(rename({suffix: '.min'}))
-		.pipe(uglify())
-		.pipe(gulp.dest('tmp'));
+gulp.task('minifyCss', ['less', 'external-less', 'sass', 'external-sass'], function () {
+    var cssSrc = config.css.src;
+    return gulp.src(cssSrc, {base: '.'})
+    	// This will output the non-minified version
+        .pipe(gulpif(args.target == 'build:release', gulp.dest('tmp')))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(cssnano())
+        .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
-gulp.task('minifyCss', ['minifyJs'], function () {
-	var cssSrc = config.css.src;
-	if ( args.target == 'build:release' ) {
-		cssSrc = cssSrc.map(function(src) {
-			return 'tmp/' + src;
-		});
-	}
-	return gulp.src(cssSrc, {base: '.'})
-		.pipe(rename({suffix: '.min'}))
-		.pipe(cssnano())
-		// Already in tmp
-		.pipe(gulp.dest('.'));
+gulp.task('minifyJs', function () {
+    return gulp.src(config.js.src, {base: '.'})
+        // This will output the non-minified version
+        .pipe(gulp.dest('tmp'))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(uglify())
+        .pipe(gulp.dest('tmp'));
 });
 
-gulp.task('copy', ['version', 'minifyCss', 'i18n'], function () {
+gulp.task('copy', ['version', 'minifyJs', 'minifyCss', 'i18n'], function () {
 
 	var phpFilter = filter( ['**/*.php'], {restore: true} );
 
@@ -195,7 +191,7 @@ gulp.task('build:release', ['move'], function () {
 });
 
 gulp.task('build:dev', ['sass', 'external-sass', 'less', 'external-less'], function () {
-	
+
 	gutil.log('Starting livereload.');
 	livereload.listen();
 	
