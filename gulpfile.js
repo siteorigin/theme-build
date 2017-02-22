@@ -152,7 +152,7 @@ gulp.task('minifyCss', ['less', 'external-less', 'sass', 'external-sass'], funct
     	// This will output the non-minified version
         .pipe(gulpif(args.target == 'build:release', gulp.dest('tmp')))
         .pipe(rename({suffix: '.min'}))
-        .pipe(cssnano())
+        .pipe(cssnano({zindex:false}))
         .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
 });
 
