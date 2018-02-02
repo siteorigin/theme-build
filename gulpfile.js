@@ -34,7 +34,7 @@ if (process.argv.length > 2) {
 }
 
 var catchDevErrors = function (plugin) {
-	if (args.target == 'build:dev') {
+	if (args.target === 'build:dev') {
 		plugin.on('error', function (error) {
 			gutil.log(error);
 			plugin.emit('end');
@@ -48,11 +48,11 @@ process.chdir('..');
 var themeRoot = process.cwd();
 var pathParts = themeRoot.split(path.sep);
 var themeSlug = pathParts[pathParts.length - 1];
-var outDir = args.target == 'build:dev' ? '.' : 'dist';
-if (args.target == 'build:dev') args.v = 'dev';
+var outDir = args.target === 'build:dev' ? '.' : 'dist';
+if (args.target === 'build:dev') args.v = 'dev';
 
 gulp.task('clean', function () {
-	if (outDir != '.') {
+	if (outDir !== '.') {
 		del([outDir]);
 	}
 });
@@ -86,11 +86,11 @@ gulp.task('i18n', [ 'clean' ], function () {
 			lastTranslator: 'SiteOrigin <support@siteorigin.com>',
 			team: 'SiteOrigin <support@siteorigin.com>'
 		}))
-		.pipe(gulp.dest(args.target == 'build:release' ? 'tmp/languages' : 'languages'));
+		.pipe(gulp.dest(args.target === 'build:release' ? 'tmp/languages' : 'languages'));
 });
 
 gulp.task('version', ['contributors'], function () {
-	if (typeof args.v == "undefined") {
+	if (typeof args.v === "undefined") {
 		console.log("version task requires version number argument.");
 		console.log("E.g. gulp build:release -v 1.2.3");
 		return;
@@ -107,11 +107,11 @@ gulp.task('version', ['contributors'], function () {
 gulp.task('sass', function ( ) {
 	return gulp.src(config.sass.src)
 		.pipe(replace(/(Version:).*/, '$1 ' + args.v))
-		.pipe(gulpif(args.target != 'build:release', sourcemaps.init()))
+		.pipe(gulpif(args.target !== 'build:release', sourcemaps.init()))
 		.pipe(catchDevErrors(sass({
 			includePaths: config.sass.include,
 		})))
-		.pipe(gulpif(args.target != 'build:release', sourcemaps.write('./sass/maps')))
+		.pipe(gulpif(args.target !== 'build:release', sourcemaps.write('./sass/maps')))
 		.pipe(gulp.dest('.'))
 		.pipe(livereload());
 });
@@ -150,10 +150,10 @@ gulp.task('minifyCss', ['less', 'external-less', 'sass', 'external-sass'], funct
     var cssSrc = config.css.src;
     return gulp.src(cssSrc, {base: '.'})
     	// This will output the non-minified version
-        .pipe(gulpif(args.target == 'build:release', gulp.dest('tmp')))
+        .pipe(gulpif(args.target === 'build:release', gulp.dest('tmp')))
         .pipe(rename({suffix: '.min'}))
         .pipe(cssnano({zindex:false}))
-        .pipe(gulp.dest(args.target == 'build:release' ? 'tmp' : '.'));
+        .pipe(gulp.dest(args.target === 'build:release' ? 'tmp' : '.'));
 });
 
 gulp.task('minifyJs', function () {
