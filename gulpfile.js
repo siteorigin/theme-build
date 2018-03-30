@@ -16,7 +16,8 @@ var path = require( 'path' );
 var gutil = require( 'gulp-util' );
 var filter = require( 'gulp-filter' );
 var livereload = require( 'gulp-livereload' );
-
+var request = require( 'request' );
+var fs = require( 'fs' );
 var gitContributors = require( './gulp-git-contributors.js' );
 
 var args = {};
@@ -27,7 +28,7 @@ if ( process.argv.length > 2 ) {
 		if ( argName.match( /build:/ ) ) {
 			args.target = argName;
 		}
-		else if ( argName.match( /-\w+/i ) ) {
+		else if ( argName.match( /^-{1}\w+/i ) ) {
 			args[ argName.slice( 1 ) ] = arr[ i + 1 ];
 		}
 	}
@@ -221,4 +222,55 @@ gulp.task( 'build:dev', [ 'sass', 'external-sass', 'less', 'external-less' ], fu
 
 gulp.task( 'default', [ 'build:release' ], function () {
 
+} );
+
+gulp.task( 'updateGoogleFonts', function () {
+	if ( ! ( config.googleFonts && config.googleFonts.dest ) ) {
+		gutil.log( 'Missing googleFonts.dest config value. Need to know where to write the output file.' );
+		return;
+	}
+	
+	if ( ! args.apiKey ) {
+		gutil.log( 'Missing apiKey argument. Google Fonts requires an API Key.' );
+		return;
+	}
+	
+	var outFile = config.googleFonts.dest;
+	
+	var fontsUrl = 'https://www.googleapis.com/webfonts/v1/webfonts?sort=alpha&key=' + args.apiKey;
+	
+	request( {
+		url: fontsUrl,
+		json: true,
+	}, function ( error, response, body ) {
+		var fontsString = '<?php\n\nreturn array (\n';
+		var fonts = body.items;
+		fonts.forEach( function( font ) {
+			fontsString += "\t'" + font.family + "' => array (\n";
+			fontsString += "\t\t'category' => '" + font.category + "',\n";
+			
+			fontsString += "\t\t'variants' => array(\n";
+			font.variants.forEach( function ( variant, i ) {
+				fontsString += "\t\t\t" + i + " => '" + variant + "',\n"
+			} );
+			fontsString += "\t\t),\n";
+			
+			fontsString += "\t\t'subsets' => array(\n";
+			font.subsets.forEach( function ( subsets, i ) {
+				fontsString += "\t\t\t" + i + " => '" + subsets + "',\n"
+			} );
+			fontsString += "\t\t),\n";
+			fontsString += "\t),\n";
+		} );
+		fontsString += ");";
+		
+		fs.writeFile( outFile, fontsString, function ( error ) {
+			if ( error ) {
+				gutil.log( error.message );
+				throw error;
+			}
+			gutil.log( 'Successfully updated Google Fonts.' );
+		} );
+	} );
+	
 } );
