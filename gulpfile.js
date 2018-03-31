@@ -243,6 +243,22 @@ gulp.task( 'updateGoogleFonts', function () {
 		url: fontsUrl,
 		json: true,
 	}, function ( error, response, body ) {
+		
+		if ( error ) {
+			gutil.log( 'An error occurred while fetching fonts:' );
+			gutil.log( error.message );
+			return;
+		}
+		
+		if ( body.error ) {
+			gutil.log( 'An error occurred while fetching fonts:' );
+			gutil.log( body.error.code.toString() + ' ' + body.error.message );
+			body.error.errors.forEach( function ( error ) {
+				gutil.log( error );
+			} );
+			return;
+		}
+		
 		var fontsString = '<?php\n\nreturn array (\n';
 		var fonts = body.items;
 		fonts.forEach( function( font ) {
