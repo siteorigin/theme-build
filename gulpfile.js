@@ -77,17 +77,17 @@ gulp.task( 'contributors', [ 'clean' ], function () {
 } );
 
 gulp.task( 'i18n', [ 'clean' ], function () {
-	return gulp.src( [ '**/*.php', '!dist/**/*.php' ] )
+	var dir = args.target === 'build:release' ? 'tmp/' : '';
+	return gulp.src( [ '**/*.php', '!tmp/**/*.php', '!dist/**/*.php' ] )
 	.pipe( sort() )
 	.pipe( wpPot( {
 		domain: themeSlug,
-		destFile: themeSlug + '.pot',
 		package: themeSlug,
 		bugReport: 'http://www.siteorigin.com',
 		lastTranslator: 'SiteOrigin <support@siteorigin.com>',
 		team: 'SiteOrigin <support@siteorigin.com>'
 	} ) )
-	.pipe( gulp.dest( args.target === 'build:release' ? 'tmp/languages' : 'languages' ) );
+	.pipe( gulp.dest( dir + 'languages/' + themeSlug + '.pot' ) );
 } );
 
 gulp.task( 'version', [ 'contributors' ], function () {
