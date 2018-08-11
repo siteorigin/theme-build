@@ -34,3 +34,6 @@ The dev build task only has one subtask:
 1) Watch SASS files for changes and compile to CSS.
 
 This is simply to avoid having to manually recompile SASS files while working on them.
+
+## Updating the Google fonts array
+`gulp updateGoogleFonts -apiKey {YOUR_API_KEY}` The task will require an update to the build-config file in each theme to specify the name and location of the fonts file.
