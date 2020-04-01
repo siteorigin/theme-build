@@ -19,19 +19,11 @@ var livereload = require( 'gulp-livereload' );
 var request = require( 'request' );
 var fs = require( 'fs' );
 var gitContributors = require( './gulp-git-contributors.js' );
+var yargs = require( 'yargs' );
 
-var args = {};
-if ( process.argv.length > 2 ) {
-	var arr = process.argv.slice( 2 );
-	for ( var i = 0; i < arr.length; i++ ) {
-		var argName = arr[ i ];
-		if ( argName.match( /build:/ ) ) {
-			args.target = argName;
-		}
-		else if ( argName.match( /^-{1}\w+/i ) ) {
-			args[ argName.slice( 1 ) ] = arr[ i + 1 ];
-		}
-	}
+var args = yargs.argv;
+if ( args.hasOwnProperty( '_' ) ) {
+	args.target = args._[ 0 ];
 }
 
 var catchDevErrors = function ( plugin ) {
