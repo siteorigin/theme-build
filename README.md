@@ -37,3 +37,5 @@ This is simply to avoid having to manually recompile SASS files while working on
 
 ## Updating the Google fonts array
 `gulp updateGoogleFonts -apiKey {YOUR_API_KEY}` The task will require an update to the build-config file in each theme to specify the name and location of the fonts file.
+
+Vantage requires a separate script to update the Google Fonts array. For instructions, see the following [Gist](https://gist.github.com/Misplon/ae1360916989e282830e3f45242055d4).
