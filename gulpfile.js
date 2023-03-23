@@ -18,7 +18,6 @@ var filter = require( 'gulp-filter' );
 var livereload = require( 'gulp-livereload' );
 var request = require( 'request' );
 var fs = require( 'fs' );
-var gitContributors = require( './gulp-git-contributors.js' );
 var yargs = require( 'yargs' );
 
 var args = yargs.argv;
@@ -50,24 +49,6 @@ gulp.task( 'clean', function () {
 	}
 } );
 
-gulp.task( 'contributors', [ 'clean' ], function () {
-	if ( typeof config.contributors === 'undefined' ) return;
-	
-	// Append the output directory to be ignored. It gets deleted in the 'clean' task.
-	var contribsSrc = config.contributors.src.concat( [ '!{' + outDir + ',' + outDir + '/**}' ] );
-	return gulp.src( contribsSrc )
-	.pipe( gitContributors( {
-		cwd: themeRoot,
-		skipBoundary: true,
-		skipCommits: config.contributors.skipCommits,
-		excludeEmails: config.contributors.excludeEmails || [],
-		hideEmails: true,
-		outputPath: 'inc/',
-		format: 'php'
-	} ) )
-	.pipe( gulp.dest( 'tmp' ) );
-} );
-
 gulp.task( 'i18n', [ 'clean' ], function () {
 	var dir = args.target === 'build:release' ? 'tmp/' : '';
 	return gulp.src( [ '**/*.php', '!tmp/**/*.php', '!dist/**/*.php' ] )
@@ -82,7 +63,7 @@ gulp.task( 'i18n', [ 'clean' ], function () {
 	.pipe( gulp.dest( dir + 'languages/' + themeSlug + '.pot' ) );
 } );
 
-gulp.task( 'version', [ 'contributors' ], function () {
+gulp.task( 'version', function () {
 	if ( typeof args.v === "undefined" ) {
 		gutil.log( "version task requires version number argument." );
 		gutil.log( "E.g. gulp build:release -v 1.2.3" );
