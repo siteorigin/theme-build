@@ -6,7 +6,6 @@ import sort from 'gulp-sort';
 import { deleteAsync } from 'del';
 import rename from 'gulp-rename';
 import replace from 'gulp-replace';
-import sass from 'gulp-sass';
 import less from 'gulp-less';
 import terser from 'gulp-terser';
 import cssnano from 'gulp-cssnano';
@@ -24,6 +23,9 @@ import path from 'path';
 import { createRequire } from 'module';
 import sourcemaps from 'gulp-sourcemaps';
 import browserSync from 'browser-sync';
+import gulpSass from 'gulp-sass';
+import * as dartSass from 'sass';
+const sass = gulpSass(dartSass);
 
 const require = createRequire(import.meta.url);
 
@@ -85,53 +87,90 @@ const versionTask = () => {
 };
 
 // LESS task
-const lessTask = () => {
-	if (!config.less) {
-		return Promise.resolve();
+const lessTask = (cb) => {
+	if (!config.less || !config.less.src || config.less.src.length === 0) {
+		console.log('No LESS configuration found');
+		return cb();
 	}
-	return src(config.less.src, { base: '.' })
+
+	const lessDir = path.dirname(config.less.src[0]);
+	if (!fs.existsSync(lessDir)) {
+		console.log(`LESS directory does not exist: ${lessDir}`);
+		return cb();
+	}
+
+	return src(config.less.src, { base: '.', allowEmpty: true })
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.init()))
-		.pipe(catchDevErrors(less({ paths: config.less.include, compress: args.target === 'build:release' })))
+		.pipe(less({ paths: config.less.include, compress: args.target === 'build:release' }).on('error', function(err) {
+			console.log(err.message);
+			this.emit('end');
+		}))
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.write('.')))
 		.pipe(dest(args.target === 'build:release' ? 'tmp' : '.'))
 		.pipe(bs.stream());
 };
 
 // External LESS task
-const externalLessTask = () => {
-	if (!config.less.external) {
-		return Promise.resolve();
+const externalLessTask = (cb) => {
+	if (!config.less || !config.less.external || !config.less.external.src || config.less.external.src.length === 0) {
+		console.log('No external LESS configuration found');
+		return cb();
 	}
-	return src(config.less.external.src, { base: '.' })
+
+	const externalLessDir = path.dirname(config.less.external.src[0]);
+	if (!fs.existsSync(externalLessDir)) {
+		console.log(`External LESS directory does not exist: ${externalLessDir}`);
+		return cb();
+	}
+
+	return src(config.less.external.src, { base: '.', allowEmpty: true })
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.init()))
-		.pipe(catchDevErrors(less({ paths: config.less.external.include, compress: args.target === 'build:release' })))
+		.pipe(less({ paths: config.less.external.include, compress: args.target === 'build:release' }).on('error', function(err) {
+			console.log(err.message);
+			this.emit('end');
+		}))
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.write('.')))
 		.pipe(dest(args.target === 'build:release' ? 'tmp' : '.'))
 		.pipe(bs.stream());
 };
 
 // SASS task
-const sassTask = () => {
+const sassTask = (cb) => {
 	if (!config.sass || !config.sass.src || config.sass.src.length === 0) {
-		console.log('No SASS files to process');
-		return Promise.resolve();
+		console.log('No SASS configuration found');
+		return cb();
 	}
-	return src(config.sass.src, { base: '.' })
+
+	const sassDir = path.dirname(config.sass.src[0]);
+	if (!fs.existsSync(sassDir)) {
+		console.log(`SASS directory does not exist: ${sassDir}`);
+		return cb();
+	}
+
+	return src(config.sass.src, { base: '.', allowEmpty: true })
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.init()))
-		.pipe(catchDevErrors(sass({ includePaths: config.sass.include, outputStyle: args.target === 'build:release' ? 'compressed' : 'expanded' })))
+		.pipe(sass({ includePaths: config.sass.include, outputStyle: args.target === 'build:release' ? 'compressed' : 'expanded' }).on('error', sass.logError))
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.write('.')))
 		.pipe(dest(args.target === 'build:release' ? 'tmp' : '.'))
 		.pipe(bs.stream());
 };
 
 // External SASS task
-const externalSassTask = () => {
-	if (!config.sass.external) {
-		return Promise.resolve();
+const externalSassTask = (cb) => {
+	if (!config.sass || !config.sass.external || !config.sass.external.src || config.sass.external.src.length === 0) {
+		console.log('No external SASS configuration found');
+		return cb();
 	}
-	return src(config.sass.external.src, { base: '.' })
+
+	const externalSassDir = path.dirname(config.sass.external.src[0]);
+	if (!fs.existsSync(externalSassDir)) {
+		console.log(`External SASS directory does not exist: ${externalSassDir}`);
+		return cb();
+	}
+
+	return src(config.sass.external.src, { base: '.', allowEmpty: true })
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.init()))
-		.pipe(catchDevErrors(sass({ includePaths: config.sass.external.include, outputStyle: args.target === 'build:release' ? 'compressed' : 'expanded' })))
+		.pipe(sass({ includePaths: config.sass.external.include, outputStyle: args.target === 'build:release' ? 'compressed' : 'expanded' }).on('error', sass.logError))
 		.pipe(gulpif(args.target !== 'build:release', sourcemaps.write('.')))
 		.pipe(dest(args.target === 'build:release' ? 'tmp' : '.'))
 		.pipe(bs.stream());
