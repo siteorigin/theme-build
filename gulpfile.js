@@ -146,6 +146,7 @@ gulp.task( 'copy', [ 'version', 'minifyJs', 'minifyCss', 'i18n' ], function () {
 	// Copy the remaining files and replace certain strings in PHP
 	return gulp.src( config.copy.src, { base: '.' } )
 	.pipe( phpFilter )
+	.pipe( replace( "'siteorigin-installer'", "'" + config.slug + "'" ) )
 	.pipe( replace( "'siteorigin'", "'" + config.slug + "'" ) )
 	.pipe( phpFilter.restore )
 	.pipe( gulp.dest( 'tmp' ) );
