@@ -132,10 +132,12 @@ gulp.task( 'minifyCss', [ 'less', 'external-less', 'sass', 'external-sass' ], fu
 
 gulp.task( 'minifyJs', function () {
 	return gulp.src( config.js.src, { base: '.' } )
-	// This will output the non-minified version
 	.pipe( gulp.dest( 'tmp' ) )
 	.pipe( rename( { suffix: '.min' } ) )
-	.pipe( uglify() )
+	.pipe( uglify().on( 'error', function ( err ) {
+		gutil.log( gutil.colors.red( '[Error]' ), err.toString() );
+		process.exit( 1 );
+	} ) )
 	.pipe( gulp.dest( 'tmp' ) );
 } );
 
